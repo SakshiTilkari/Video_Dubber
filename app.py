@@ -15,6 +15,7 @@ import spacy
 from spacy_syllables import SpacySyllables
 from tqdm import tqdm
 import re
+from en_hi_trans import translate
 
 # Define the spacy models and abbreviations
 spacy_models = {
