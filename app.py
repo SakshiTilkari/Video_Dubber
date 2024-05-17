@@ -275,7 +275,7 @@ if uploaded_file is not None:
 
     st.write("Processing...")
     
-    api_key = "AIzaSyApo1LJXJbChL04tPJiPLrM5zWjwl25jZo"
+    api_key = ""
     # Dubbing voice settings
     target_voice = "hi-IN-Standard-C"
     source_language = "english"
