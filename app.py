@@ -87,15 +87,24 @@ def transcribe_audio(audio_file, source_language):
         print(f"Error transcribing audio: {e}")
         return None
 
-
-def translate_text(texts, target_language):
+def translate_text(texts):
     try:
-        translate_client = translate.Client()
-        results = translate_client.translate(texts, target_language=target_language)
-        return [result['translatedText'] for result in results]
+        # Initialize an empty list to store translated texts
+        translated_texts = []
+        
+        # Loop through each text in the input list
+        for text in texts:
+            # Translate the text using your translation function
+            translated_text = translate(text)  # Assuming translate function is defined elsewhere
+            
+            # Append the translated text to the list
+            translated_texts.append(translated_text)
+        
+        return translated_texts
     except Exception as e:
         print(f"Error translating texts: {e}")
         return None
+
 
 def create_audio_from_text(text, target_language, target_voice, api_key):
     audio_file = "translated_" + str(uuid.uuid4()) + ".wav"
