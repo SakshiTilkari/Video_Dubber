@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 import google.auth
 from google.auth.transport.requests import Request
 from google.cloud import texttospeech_v1 as texttospeech
-from google.cloud import translate_v2 as translate
+"""from google.cloud import translate_v2 as translate"""
 import whisper
 import spacy
 from spacy_syllables import SpacySyllables
@@ -81,7 +81,7 @@ def extract_audio_from_video(video_file):
 
 def transcribe_audio(audio_file, source_language):
     try:
-        model = whisper.load_model("large")
+        model = whisper.load_model("base")
         trans = model.transcribe(audio_file, language=source_language, verbose=False, word_timestamps=True)
         return trans
     except Exception as e:
@@ -275,7 +275,7 @@ if uploaded_file is not None:
 
     st.write("Processing...")
     
-    api_key = "YOUR_API_KEY"
+    api_key = "AIzaSyApo1LJXJbChL04tPJiPLrM5zWjwl25jZo"
     # Dubbing voice settings
     target_voice = "hi-IN-Standard-C"
     source_language = "english"
