@@ -29,9 +29,10 @@ def translate(input_text):
     translated_text = decode_translation(translated_output)
     return translated_text
 
-
+""""
 if __name__ == "__main__":
     input_text = "how are you"
     translated_text = translate(input_text)
     print(f"Translated text: {translated_text}")
+"""
 
