@@ -9,13 +9,14 @@ from google.oauth2 import service_account
 import google.auth
 from google.auth.transport.requests import Request
 from google.cloud import texttospeech_v1 as texttospeech
-"""from google.cloud import translate_v2 as translate"""
 import whisper
 import spacy
 from spacy_syllables import SpacySyllables
 from tqdm import tqdm
 import re
 from en_hi_trans import translate
+
+AudioSegment.converter = "C:\Program Files\ffmpeg-master-latest-win64-gpl-shared\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe"
 
 # Define the spacy models and abbreviations
 spacy_models = {
@@ -73,6 +74,7 @@ def extract_audio_from_video(video_file):
         audio = video.audio
         audio_file = os.path.splitext(video_file)[0] + ".wav"
         audio.write_audiofile(audio_file)
+        print("audio_file", audio_file)
         return audio_file
     except Exception as e:
         print(f"Error extracting audio from video: {e}")
@@ -81,8 +83,9 @@ def extract_audio_from_video(video_file):
 
 def transcribe_audio(audio_file, source_language):
     try:
-        model = whisper.load_model("base")
+        model = whisper.load_model("small")
         trans = model.transcribe(audio_file, language=source_language, verbose=False, word_timestamps=True)
+        print("reached trans")
         return trans
     except Exception as e:
         print(f"Error transcribing audio: {e}")
@@ -108,13 +111,14 @@ def translate_text(texts):
 
 
 def create_audio_from_text(text, target_language, target_voice, api_key):
+    print("reached create audio")
     audio_file = "translated_" + str(uuid.uuid4()) + ".wav"
     try:
         client = texttospeech.TextToSpeechClient(client_options={"api_key": api_key})
         input_text = texttospeech.SynthesisInput(text=text)
         voice = texttospeech.VoiceSelectionParams(
             language_code=target_language,
-            name="hi-IN-Standard-A"
+            name="hi-IN-Standard-C"
         )
         audio_config = texttospeech.AudioConfig(
             audio_encoding=texttospeech.AudioEncoding.LINEAR16, speaking_rate=1.1
@@ -123,7 +127,9 @@ def create_audio_from_text(text, target_language, target_voice, api_key):
             input=input_text, voice=voice, audio_config=audio_config
         )
         with open(audio_file, "wb") as out:
+            print("reach weite audio")
             out.write(response.audio_content)
+            print("reach weite audio")
         return audio_file
     except Exception as e:
         if os.path.isfile(audio_file):
@@ -133,7 +139,9 @@ def create_audio_from_text(text, target_language, target_voice, api_key):
 
 def merge_audio_files(transcription, source_language, target_language, target_voice, audio_file):
     temp_files = []
+    print("reach merge audio")
     try:
+        print("reach merge audio")
         ducked_audio = AudioSegment.from_wav(audio_file)
         if spacy_models[source_language] not in spacy.util.get_installed_models():
             spacy.cli.download(spacy_models[source_language])
@@ -177,15 +185,17 @@ def merge_audio_files(transcription, source_language, target_language, target_vo
                     sent_start = 0
                     sentence = ""
         translated_texts = []
+        print("translate")
         for i in tqdm(range(0, len(sentences), 128)):
             chunk = sentences[i:i + 128]
-            translated_chunk = translate_text(chunk, target_language)
+            translated_chunk = translate_text(chunk)
             if translated_chunk is None:
                 raise Exception("Translation failed")
             translated_texts.extend(translated_chunk)
         prev_end_time = 0
+        print("translated_text")
         for i, translated_text in enumerate(tqdm(translated_texts)):
-            translated_audio_file = create_audio_from_text(translated_text, target_language, target_voice)
+            translated_audio_file = create_audio_from_text(translated_text, target_language, target_voice, api_key)
             if translated_audio_file is None:
                 raise Exception("Audio creation failed")
             temp_files.append(translated_audio_file)
@@ -207,6 +217,7 @@ def merge_audio_files(transcription, source_language, target_language, target_vo
             original_duration = int(sentence_ends[i] * 1000)
             new_duration = len(translated_audio) + len(merged_audio)
             padding_duration = max(0, original_duration - new_duration)
+            print("padding_duration")
             padding = AudioSegment.silent(duration=padding_duration)
             merged_audio += padding + translated_audio
         return merged_audio, ducked_audio
@@ -222,17 +233,20 @@ def merge_audio_files(transcription, source_language, target_language, target_vo
 
 def save_audio_to_file(audio, filename):
     try:
+        print(f"Audio track ")
         audio.export(filename, format="wav")
         print(f"Audio track with translation only saved to {filename}")
     except Exception as e:
         print(f"Error saving audio to file: {e}")
+
+import tempfile
 
 def replace_audio_in_video(video_file, new_audio):
     try:
         video = VideoFileClip(video_file)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
             new_audio.export(temp_audio_file.name, format="wav")
-        new_audio.export("ducked.wav", format="wav")
+        new_audio.export("dubbed.wav", format="wav")
         try:
             new_audio_clip = AudioFileClip(temp_audio_file.name)
         except Exception as e:
@@ -275,7 +289,7 @@ if uploaded_file is not None:
 
     st.write("Processing...")
     
-    api_key = ""
+    api_key = "AIzaSyApo1LJXJbChL04tPJiPLrM5zWjwl25jZo"
     # Dubbing voice settings
     target_voice = "hi-IN-Standard-C"
     source_language = "english"
