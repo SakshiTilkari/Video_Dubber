@@ -289,7 +289,7 @@ if uploaded_file is not None:
 
     st.write("Processing...")
     
-    api_key = "AIzaSyApo1LJXJbChL04tPJiPLrM5zWjwl25jZo"
+    api_key = "Your Google Text-To-Speech API Key"
     target_voice = "hi-IN-Standard-C"
     source_language = "english"
 
